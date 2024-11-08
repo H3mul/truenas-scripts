@@ -8,6 +8,7 @@ import argparse
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-s', '--since', type=int, default=0, help="Only clear jobs that are older than x min")
+    parser.add_argument('--dry-run', action='store_true', help="Only list current jobs, dont close")
     args = parser.parse_args()
 
     # Initialize Middleware Client
@@ -41,12 +42,13 @@ def main():
                 print(f'- Started: {start_time_formatted}')
                 print(f'- Runtime: {running_time_minutes}m')
 
-                # Abort the job
-                abort_result = middleware.call('core.job_abort', job_id)
-                if abort_result is None:
-                    print(f"-- Success")
-                else:
-                    print(f"-- Failed")
+                if not args.dryrun:
+                    # Abort the job
+                    abort_result = middleware.call('core.job_abort', job_id)
+                    if abort_result is None:
+                        print(f"-- Success")
+                    else:
+                        print(f"-- Failed")
 
     finally:
         # Close the middleware client connection
