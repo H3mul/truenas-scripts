@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta, timezone
-from middlewared.client import Client
+from truenas_api_client import Client
 import argparse
 
 # From issue response:
@@ -7,6 +7,7 @@ import argparse
 
 def main():
     parser = argparse.ArgumentParser()
+    parser.add_argument('-m', '--method', help="Job method to filter by, eg 'replication.run_onetime'")
     parser.add_argument('-s', '--since', type=int, default=0, help="Only clear jobs that are older than x min")
     parser.add_argument('--dry-run', action='store_true', help="Only list current jobs, dont close")
     args = parser.parse_args()
@@ -23,9 +24,12 @@ def main():
 
         filters = [
             ['state', '=', 'RUNNING'],
-            ['method', '=', 'replication.run_onetime'],
             ['progress.description', '=', '']
         ]
+
+        if args.method:
+            filters.append(['method', '=', args.method])
+
         jobs = middleware.call('core.get_jobs', filters)
 
         for job in jobs:
@@ -42,7 +46,7 @@ def main():
                 print(f'- Started: {start_time_formatted}')
                 print(f'- Runtime: {running_time_minutes}m')
 
-                if not args.dryrun:
+                if not args.dry_run:
                     # Abort the job
                     abort_result = middleware.call('core.job_abort', job_id)
                     if abort_result is None:
