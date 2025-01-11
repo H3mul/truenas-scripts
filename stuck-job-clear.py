@@ -20,7 +20,9 @@ def main():
         current_time = datetime.now(timezone.utc)
         filter_time = current_time - timedelta(minutes=args.since)
 
-        print(f'Cleaning up jobs older than {args.since} minutes...')
+        if args.dry_run:
+            print('Dry run')
+        print(f'Cleaning up jobs older than {args.since} minutes and ...')
 
         filters = [
             ['state', '=', 'RUNNING'],
